@@ -183,6 +183,30 @@ Comparação direta com Aurelia usando `gemma4:e4b` (v0.2).
 
 ---
 
+## Resultados: F-series — Granite via Hermes
+
+F-series rodado com Hermes configurado com `granite4.1:8b` como modelo backend.  
+Comparação direta com Hermes usando `gemma4:e4b` (v0.2).
+
+| ID | Descrição | e4b+Hermes | **Granite+Hermes** |
+|----|-----------|:----------:|:-----------------:|
+| F1 | Raciocínio RTX 3060 | 1.33 | 1.00 |
+| F2 | Conformidade JSON | **4.00** | **4.00** |
+| F3 | Retenção multi-turn (4 turns) | 1.67 | **3.50** ↑ |
+| F4 | Shell — Docker containers | **4.00** | **4.00** |
+| F5 | Diagnóstico do servidor | **4.00** | 1.50 ↓ |
+| F6 | Leitura de arquivo | 2.00 | **3.00** ↑ |
+| F7 | HTTP via curl — Ollama | **4.00** | **4.00** |
+| **Média** | | **3.00** | **3.00** |
+
+**Análise:**
+- **F3 ↑ (1.67→3.50):** Granite retém contexto multi-turn no Hermes melhor que e4b — o formato de sessão do Hermes favorece Granite aqui.
+- **F5 ↓ (4.00→1.50):** Granite escolheu `systemctl status` (reportou "degraded") em vez de ferramentas de saúde (cpu/ram). Run 1 usou ferramentas corretas mas retornou ~4GB RAM (errado — servidor tem 128GB). Falha real de diagnóstico.
+- **F6 ↑ (2.00→3.00):** Granite lê e interpreta arquivos com mais detalhes via Hermes.
+- Médias idênticas (3.00), mas distribuição complementar a e4b: Granite melhor em multi-turn e leitura, pior em diagnóstico de sistema.
+
+---
+
 ## LFM2 24b — nota de exclusão
 
 | Cenário | Tool calls | QUAL | Status |
@@ -200,7 +224,7 @@ Comparação direta com Aurelia usando `gemma4:e4b` (v0.2).
 ## Roadmap v0.4
 
 - [x] Rodar Granite 4.1 8b no F-series via Aurelia
-- [ ] Rodar Granite 4.1 8b no F-series via Hermes
+- [x] Rodar Granite 4.1 8b no F-series via Hermes
 - [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge
 - [ ] Rodar C/T/M series com Aurelia e Hermes (e4b)
 - [ ] Rodar 26b nos frameworks — **aguardando troca do cooler**
