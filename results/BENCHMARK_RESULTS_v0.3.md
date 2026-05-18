@@ -227,7 +227,7 @@ Comparação direta com Hermes usando `gemma4:e4b` (v0.2).
 - [x] Rodar Granite 4.1 8b no F-series via Hermes
 - [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge
 - [ ] Rodar C/T/M series com Aurelia e Hermes (e4b)
-- [ ] **Granite 4.1 30b** — baixado (17GB, 2× RTX 3060), **rodar após troca do cooler** (prioridade #1 pós-cooler). Hipótese: mantém tool use confiável do 8b + adiciona raciocínio longo → candidato a modelo padrão único.
+- [ ] **Granite 4.1 30b** — baixado (17GB, 2× RTX 3060), **rodar após troca do cooler** (prioridade #1 pós-cooler). Hipótese: mantém tool use confiável do 8b + adiciona raciocínio longo → candidato a modelo padrão único. ⚠️ Teste parcial interrompido: CPU Package 71°C (high=68°C) sustentado por 3+ min — 17GB em 2 GPUs força tráfego PCIe contínuo pelo Xeon (sem NVLink). Pasta térmica degradada não dissipa sob carga. Modelos em 1 GPU única não causam esse problema.
 - [ ] Rodar 26b nos frameworks — **aguardando troca do cooler**
 - [ ] Candidatos futuros: `qwen3.6:27b`, `gemma4:31b` — pós-cooler
 
