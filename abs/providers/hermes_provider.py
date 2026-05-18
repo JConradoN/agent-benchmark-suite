@@ -55,15 +55,12 @@ class HermesProvider:
             )
             total_latency_ms += int((time.perf_counter() - t0) * 1000)
 
-            stdout = result.stdout
-
-            # Extract session_id from output
-            m = _SESSION_RE.search(stdout)
+            # session_id is printed to stderr in -Q mode; response is stdout
+            m = _SESSION_RE.search(result.stderr)
             if m:
                 session_id = m.group(1)
 
-            # Response text: everything except the session_id line
-            lines = [l for l in stdout.splitlines() if not l.startswith("session_id:")]
+            lines = [l for l in result.stdout.splitlines() if not l.startswith("↻ Resumed")]
             final_output = "\n".join(lines).strip()
 
         return {
