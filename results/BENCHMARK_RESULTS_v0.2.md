@@ -5,6 +5,10 @@
 **Modelos:** `gemma4:e4b-it-q4_K_M` (via Ollama direto, Hermes, Aurelia)  
 **Nota:** Hermes e Aurelia rodam o mesmo modelo base (`e4b`) através dos seus pipelines completos.
 
+> **v0.2.1 (2026-05-18):** Corrigido bug no `hermes_provider` — `session_id` era lido do
+> stdout mas o Hermes em modo `-Q` o imprime no stderr. O `--resume` nunca era passado,
+> fazendo cada turn rodar como sessão nova. L-series re-rodada após o fix.
+
 ---
 
 ## O que foi testado
@@ -17,7 +21,7 @@ Esta versão introduz dois **providers reais de framework**:
 | `hermes` | Subprocess `hermes chat -Q` + `--resume` | Sessão CLI | Ferramentas nativas do Hermes |
 | `aurelia` | HTTP `POST /api/chat` (Chat API local) | Sessão persistente (SQLite) | Ferramentas nativas da Aurelia |
 
-Séries testadas com os frameworks: **F** (F-series, tarefas reais), **Q** (qualidade de raciocínio), **L** (retenção multi-turn longa).
+Séries testadas com os frameworks: **F** (tarefas reais), **Q** (qualidade de raciocínio), **L** (retenção multi-turn longa).
 
 ---
 
@@ -38,35 +42,30 @@ Cenários desenhados para verificar capacidades reais dos frameworks: shell, lei
 > ¹ F7 Aurelia: 1 run com timeout (120s), 1 run com resposta parcial.
 
 **Destaques F-series:**
-- **Aurelia ~40% mais rápida** que Hermes na maioria dos cenários (pipeline HTTP vs subprocess)
-- **F3 (multi-turn)**: Aurelia 3.0 vs Hermes 1.67 — a sessão HTTP estável funciona melhor que o `--resume` via subprocess
+- **Aurelia ~40% mais rápida** que Hermes (pipeline HTTP vs subprocess)
+- **F3 (multi-turn)**: Aurelia 3.0 vs Hermes 1.67 — sessão HTTP contínua é mais estável que subprocess com `--resume`
 - **F4/F5 empatados** em QUAL=4 — ambos executam shell corretamente
 - **F6 (file read)**: ambos 2.0 — conseguem ler mas perdem metadados (kernel, arquitetura)
-- **F7 (URL)**: ambos fracos — o modelo não navega adequadamente sem browser tool explícito
+- **F7 (URL)**: ambos fracos — modelo não navega sem browser tool explícito
 
 ---
 
 ## Resultados: L-series (retenção longa, multi-turn)
 
-O resultado mais revelador da bateria v0.2: **Hermes falha completamente** em retenção multi-turn.
-
 | ID | Descrição | Aurelia | Hermes | Direct 26b | Direct e4b |
 |----|-----------|:-------:|:------:|:----------:|:----------:|
-| L1 | Info do turn 1 → perguntada no turn 5 | **4.00** | 0.00 | 4.00 | 4.00 |
-| L2 | Consistência numérica em 8 turns | **4.00** | 0.00 | 4.00 | 4.00 |
-| L3 | Qualidade após 10 turns | 2.00 | 2.50 | 1.00 | 2.33 |
+| L1 | Info do turn 1 → perguntada no turn 5 | **4.00** | **4.00** | 4.00 | 4.00 |
+| L2 | Consistência numérica em 8 turns | **4.00** | **4.00** | 4.00 | 4.00 |
+| L3 | Qualidade após 10 turns | 2.00 | **3.50** | 1.00 | 2.33 |
 
 **Análise:**
-- **Hermes L1/L2 = 0**: O mecanismo `--resume` do Hermes não preserva contexto entre chamadas separadas do ABS. Cada turn envia uma nova requisição ao subprocess, e embora o `session_id` seja reutilizado, o modelo perde o histórico.
-- **Aurelia L1/L2 = 4**: A sessão HTTP persistente (mapeada por `session_key → chatID`) mantém o histórico completo no SQLite da Aurelia. O pipeline funciona como esperado.
-- **Direct Ollama L1/L2 = 4**: O contexto é preservado dentro da mesma janela de tokens — sem memória externa, mas sem fragmentação entre requests.
-- **L3 (10 turns)**: Hermes 2.50 > Aurelia 2.00 ≈ e4b 2.33 — nenhum framework performa bem em coerência longa; o overhead de sessão da Aurelia pode estar adicionando ruído.
+- **L1/L2 — todos 4.0**: Com o fix do `session_id`, o Hermes preserva contexto corretamente via `--resume`. Aurelia via SQLite. Ollama direto via janela de tokens.
+- **L3 — Hermes 3.50 lidera**: Em conversas muito longas (10 turns) o Hermes vai melhor que Aurelia (2.0) e e4b direto (2.33). O overhead de sessão da Aurelia provavelmente dilui o contexto ao processar histórico acumulado.
+- **Direct Ollama L3 = 1.0 (26b)**: O 26b degrada mais em conversas longas que o e4b — mais tokens de raciocínio por turno enchem a janela mais rápido.
 
 ---
 
 ## Resultados: Q-series (qualidade, sem ferramentas)
-
-Comparação direta entre frameworks e Ollama direto no mesmo modelo.
 
 | ID | Descrição | Aurelia | Hermes | Direct 26b | Direct e4b |
 |----|-----------|:-------:|:------:|:----------:|:----------:|
@@ -76,10 +75,10 @@ Comparação direta entre frameworks e Ollama direto no mesmo modelo.
 | Q4 | Análise log de erro | 3.00 | 3.00 | 3.00 | 3.00 |
 
 **Análise Q-series:**
-- **Q2 universal 4.0**: Todos os providers acertam formatação JSON — o modelo domina essa capacidade.
-- **Q3 (retenção técnica)**: Direct e4b = 4.0 é melhor que Hermes/26b = 3.0 > Aurelia = 2.0. A Aurelia pode estar perdendo signal por overhead de sistema (persona, nudge, processamento de histórico).
-- **Q4 (diagnóstico)**: Empate em 3.0 — tarefa de raciocínio sem multi-turn não diferencia os providers.
-- **Latência Q**: Hermes 2–4× mais lento que direct Ollama para queries de texto puro. Aurelia 1.5–2× mais lenta que direct.
+- **Q2 universal 4.0**: Formatação JSON é dominada por todos os providers.
+- **Q3**: e4b direto = 4.0 > Hermes/26b = 3.0 > Aurelia = 2.0. A Aurelia perde signal em multi-turn por overhead de processamento de sessão (persona, nudge, histórico).
+- **Q4 empate em 3.0**: Diagnóstico de log é tarefa single-turn — não diferencia providers.
+- **Latência Q**: Hermes 2–4× mais lento que direct Ollama. Aurelia 1.5–2× mais lenta.
 
 ---
 
@@ -89,18 +88,19 @@ Comparação direta entre frameworks e Ollama direto no mesmo modelo.
 
 | Framework | Pontos fortes | Pontos fracos |
 |-----------|--------------|---------------|
-| **Direct Ollama** | Mais rápido (tok/s ~69), L-series perfeita, Q3 melhor | Sem ferramentas reais, sem memória persistente |
-| **Aurelia** | L-series perfeita com sessão real, ~40% mais rápido que Hermes, F3 melhor | Latência overhead ~2×, Q3 degradado |
-| **Hermes** | F4/F5 correto (shell), F7 ligeiramente melhor | L1/L2 = 0 (sessão quebrada), ~2–4× mais lento |
+| **Direct Ollama** | Mais rápido (~69 tok/s), Q3 melhor, L1/L2 perfeito | Sem ferramentas reais, sem memória persistente entre sessões |
+| **Aurelia** | L1/L2 perfeito, ~40% mais rápido que Hermes, F3 melhor | Overhead ~2×, Q3/L3 degradados |
+| **Hermes** | L1/L2/L3 melhor (memória longa), F4/F5 correto | F3 fraco, ~2–4× mais lento que direct |
 
 ### Por capacidade
 
 | Capacidade | Melhor provider | Observação |
 |------------|----------------|------------|
-| Retenção multi-turn real | Aurelia | Hermes falha completamente em sessões separadas |
-| Velocidade pura | Direct Ollama | 1s vs 10–35s dos frameworks |
-| Ferramentas shell | Aurelia ≈ Hermes | Ambos acertam Docker/diagnóstico |
-| Raciocínio complexo | Direct e4b | Pipeline adiciona overhead sem ganho em Q-series |
+| Retenção longa (L1/L2) | Empate (todos 4.0) | Após fix do Hermes |
+| Qualidade em conversa longa (L3) | **Hermes** | 3.50 vs Aurelia 2.0 |
+| Velocidade | **Direct Ollama** | 1s vs 10–35s dos frameworks |
+| Ferramentas shell (F4/F5) | Empate | Ambos frameworks acertam |
+| Multi-turn curto (F3/Q3) | **Hermes** leve vantagem em Q3; **Aurelia** em F3 | Depende do tamanho da sessão |
 | Formato estruturado | Universal | Q2/F2 = 4.0 em todos |
 
 ---
@@ -119,34 +119,34 @@ F2 JSON:        Aurelia 17.6s  ████████░░░░░░░░�
 ### L-series (custo da memória)
 
 ```
-L2 (8 turns):  Direct 2.1s  ██░  Aurelia 113s  ████████████████████░  Hermes 188s  ██████████████████████████████
-L1 (5 turns):  Direct 0.9s  █░   Aurelia 55.6s ████████░              Hermes 69.7s ██████████
+L3 (10 turns): Direct 10.2s  ████░  Aurelia 148s  ████████████████████░  Hermes 190s  ████████████████████████████
+L2 (8 turns):  Direct  2.1s  █░     Aurelia 113s  ████████████████░      Hermes 211s  ██████████████████████████████
+L1 (5 turns):  Direct  0.9s  ░      Aurelia  55s  ████████░              Hermes  97s  ██████████████
 ```
 
-A latência da Aurelia em L-series é alta por envolver múltiplas chamadas ao pipeline completo (cada turn = 1 request HTTP completo com sessão, persona, histórico).
+A latência alta dos frameworks em L-series é esperada: cada turn é um request completo com sessão, persona e histórico acumulado.
 
 ---
 
-## Problemas identificados
+## Problemas identificados e status
 
-1. **Hermes `--resume` não preserva contexto multi-turn** entre invocações separadas do ABS — L1/L2 = 0. Necessita investigação no protocolo de sessão do Hermes CLI.
-
-2. **F7 Aurelia timeout**: A tarefa pede análise de `http://fox-server.lan/home/` — o pipeline provavelmente aguarda resposta de browser tool que não está configurada para retornar via Chat API. Timeout de 120s.
-
-3. **Q3 Aurelia degradado** (2.0 vs e4b direct 4.0): A conversa multi-turn no Q3 pode estar sendo prejudicada pelo overhead de processamento de sessão. Investigar se a persona/nudge interferem no recall de contexto.
-
-4. **tok/s não disponível** para frameworks (retornam `null`) — apenas o Ollama direto reporta throughput real (~68–70 tok/s).
+| # | Problema | Status |
+|---|----------|--------|
+| 1 | Hermes `--resume` não funcionava — `session_id` lido do stdout em vez do stderr | ✅ **Corrigido** (`hermes_provider.py`) |
+| 2 | F7 Aurelia timeout — pipeline aguarda browser tool não disponível via Chat API | ⚠️ Aberto |
+| 3 | Q3/L3 Aurelia degradados — overhead de sessão dilui contexto | ⚠️ A investigar |
+| 4 | `tok/s` não disponível para frameworks (retornam `null`) | ℹ️ Limitação de design |
 
 ---
 
 ## Roadmap v0.3
 
-- [ ] Diagnosticar e corrigir sessão multi-turn do Hermes (L1/L2 = 0)
-- [ ] F7: adicionar tool de browsing explícita ao cenário ou marcar como hermes-only
-- [ ] Rodar e4b + 26b na F-series via Ollama direto como baseline sem framework overhead
-- [ ] Adicionar `gemma4:12b` como ponto médio entre e4b e 26b
-- [ ] Investigar Q3 Aurelia — comparar com/sem persona ativa
+- [ ] F7: adicionar tool de browsing explícita ou marcar como incompatível com Chat API
+- [ ] Rodar e4b + 26b na F-series via Ollama direto (baseline sem overhead de framework)
+- [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge ativos
+- [ ] Adicionar `gemma4:12b` como ponto médio
 - [ ] Rodar C/T/M series com Aurelia/Hermes para comparação completa
+- [ ] Rodar 26b nos frameworks após troca do cooler do processador
 
 ---
 
@@ -156,11 +156,12 @@ A latência da Aurelia em L-series é alta por envolver múltiplas chamadas ao p
 Aurelia Chat API : http://localhost:18790/api/chat
   Timeout        : 120s
   session_key    : abs-{scenario_id}-{run_idx}
-  
+
 Hermes CLI       : hermes chat -Q --provider custom --max-turns N [--resume session_id]
+  session_id     : capturado do stderr (não stdout) em modo -Q
   Config         : ~/.hermes/config.yaml
   Provider       : custom (http://127.0.0.1:11434/v1)
-  
+
 Direct Ollama    : http://localhost:11434/api/chat
   Format         : tools injected by ABS mock
 ```

@@ -190,9 +190,10 @@ Resultados gravados em `results/run_<ID>_<model>.jsonl`, uma linha JSON por run:
 
 Relatórios de análise são salvos em `results/BENCHMARK_RESULTS_<versão>.md`.
 
-| Arquivo | Modelos | Data |
-|---------|---------|------|
-| [BENCHMARK_RESULTS_v0.1.md](results/BENCHMARK_RESULTS_v0.1.md) | `gemma4:e4b-it-q4_K_M` vs `gemma4:26b-a4b-it-q4_K_M` | 2026-05-18 |
+| Arquivo | Descrição | Data |
+|---------|-----------|------|
+| [BENCHMARK_RESULTS_v0.1.md](results/BENCHMARK_RESULTS_v0.1.md) | Ollama direto — `e4b` vs `26b`, séries Q/T/C/L/M | 2026-05-18 |
+| [BENCHMARK_RESULTS_v0.2.md](results/BENCHMARK_RESULTS_v0.2.md) | Hermes + Aurelia providers — séries F/Q/L, comparação de frameworks | 2026-05-18 |
 
 ---
 
@@ -216,15 +217,20 @@ agent-benchmark-suite/
 │   ├── runner.py          # BenchmarkRunner com loop de tool calls
 │   ├── scorer.py          # Funções de scoring por método
 │   ├── reporter.py        # Tabela de resumo (rich)
-│   └── providers/
-│       └── ollama.py      # Provider Ollama (OpenAI-compatible)
+│   ├── providers/
+│   │   ├── base.py            # Protocol Provider
+│   │   ├── ollama.py          # Provider Ollama (OpenAI-compatible, mock tools)
+│   │   ├── hermes_provider.py # Provider Hermes (subprocess hermes chat -Q)
+│   │   └── aurelia_provider.py# Provider Aurelia (HTTP Chat API :18790)
+│   └── framework_runner.py    # FrameworkRunner (sem mock tools — ferramentas reais)
 ├── scenarios/
 │   ├── tools.py           # ToolDef: AURELIA_TOOLS, HERMES_TOOLS, ALL_TOOLS
 │   ├── q_series.py        # Q1–Q4
 │   ├── t_series.py        # T1–T6
 │   ├── c_series.py        # C1–C5
 │   ├── l_series.py        # L1–L3
-│   └── m_series.py        # M1-A, M1-H, M2-A, M2-H
+│   ├── m_series.py        # M1-A, M1-H, M2-A, M2-H
+│   └── f_series.py        # F1–F7 (tarefas reais para frameworks)
 ├── run.py                 # CLI principal
 ├── compare.py             # Comparação entre modelos
 ├── results/
