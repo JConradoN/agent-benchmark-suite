@@ -25,28 +25,38 @@ Séries testadas com os frameworks: **F** (tarefas reais), **Q** (qualidade de r
 
 ---
 
-## Resultados: F-series (tarefas reais, Hermes vs Aurelia)
+## Resultados: F-series (tarefas reais)
 
-Cenários desenhados para verificar capacidades reais dos frameworks: shell, leitura de arquivo, URL, multi-turn.
+Inclui baseline Ollama direto (mock tools) + frameworks com ferramentas reais.
 
-| ID | Descrição | Aurelia QUAL | Hermes QUAL | Aurelia ms | Hermes ms |
-|----|-----------|:------------:|:-----------:|:----------:|:---------:|
-| F1 | Raciocínio técnico — modelo RTX 3060 | 1.50 | 1.33 | 12.6s | 25.6s |
-| F2 | Conformidade JSON | **4.00** | **4.00** | 17.6s | 23.8s |
-| F3 | Retenção multi-turn (4 turns) | **3.00** | 1.67 | 32.8s | 61.8s |
-| F4 | Shell — containers Docker | **4.00** | **4.00** | 13.4s | 15.9s |
-| F5 | Diagnóstico saúde do servidor | **4.00** | **4.00** | 18.7s | 34.2s |
-| F6 | Leitura de arquivo (`/etc/os-release`) | 2.00 | 2.00 | 5.4s | 14.2s |
-| F7 | Análise de URL (fox-server dashboard) | 1.00¹ | 1.67 | 63.9s | 44.1s |
+> **F7 reformulado:** a versão original (`fox-server.lan/home/`) usava browser tool não disponível no provider custom e a URL não resolve via localhost. Substituído por `curl http://localhost:11434/api/tags` — testa HTTP via shell, que ambos os frameworks executam nativamente.
 
-> ¹ F7 Aurelia: 1 run com timeout (120s), 1 run com resposta parcial.
+| ID | Descrição | e4b direto | Aurelia | Hermes |
+|----|-----------|:----------:|:-------:|:------:|
+| F1 | Raciocínio — modelo RTX 3060 | 2.00 | 1.50 | 1.33 |
+| F2 | Conformidade JSON | **4.00** | **4.00** | **4.00** |
+| F3 | Retenção multi-turn (4 turns) | 3.00 | 3.00 | 1.67 |
+| F4 | Shell — containers Docker | **4.00** | **4.00** | **4.00** |
+| F5 | Diagnóstico saúde do servidor | **4.00** | **4.00** | **4.00** |
+| F6 | Leitura de arquivo (`/etc/os-release`) | 1.00 | 2.00 | 2.00 |
+| F7 | HTTP via shell — modelos Ollama | 3.00 | **4.00** | **4.00** |
+
+| ID | e4b direto ms | Aurelia ms | Hermes ms |
+|----|:-------------:|:----------:|:---------:|
+| F1 | 40s | 12.6s | 25.6s |
+| F2 | 1s | 17.6s | 23.8s |
+| F3 | 7.3s | 32.8s | 61.8s |
+| F4 | 4.6s | 13.4s | 15.9s |
+| F5 | 8.9s | 18.7s | 34.2s |
+| F6 | 2.1s | 5.4s | 14.2s |
+| F7 | 7.2s | 34.3s | 33.2s |
 
 **Destaques F-series:**
-- **Aurelia ~40% mais rápida** que Hermes (pipeline HTTP vs subprocess)
-- **F3 (multi-turn)**: Aurelia 3.0 vs Hermes 1.67 — sessão HTTP contínua é mais estável que subprocess com `--resume`
-- **F4/F5 empatados** em QUAL=4 — ambos executam shell corretamente
-- **F6 (file read)**: ambos 2.0 — conseguem ler mas perdem metadados (kernel, arquitetura)
-- **F7 (URL)**: ambos fracos — modelo não navega sem browser tool explícito
+- **F6**: Ollama direto (1.0) vai *pior* que os frameworks (2.0) — sem pipeline real o modelo alucina o conteúdo em vez de ler o arquivo
+- **F7**: Frameworks (4.0) superam Ollama direto (3.0) — curl real retorna a lista completa; sem tool o modelo adivinha os modelos
+- **F3 (multi-turn)**: e4b direto e Aurelia empatam (3.0), Hermes cai (1.67) — sessão subprocess mais frágil para contexto curto
+- **F4/F5 empate triplo** em 4.0 — shell/diagnóstico funciona igual nos três
+- **Aurelia ~40% mais rápida** que Hermes (HTTP vs subprocess)
 
 ---
 
@@ -133,7 +143,7 @@ A latência alta dos frameworks em L-series é esperada: cada turn é um request
 | # | Problema | Status |
 |---|----------|--------|
 | 1 | Hermes `--resume` não funcionava — `session_id` lido do stdout em vez do stderr | ✅ **Corrigido** (`hermes_provider.py`) |
-| 2 | F7 Aurelia timeout — pipeline aguarda browser tool não disponível via Chat API | ⚠️ Aberto |
+| 2 | F7 timeout — browser tool indisponível, URL não resolve via localhost | ✅ **Corrigido** (cenário reformulado para curl localhost:11434) |
 | 3 | Q3/L3 Aurelia degradados — overhead de sessão dilui contexto | ⚠️ A investigar |
 | 4 | `tok/s` não disponível para frameworks (retornam `null`) | ℹ️ Limitação de design |
 
@@ -141,8 +151,8 @@ A latência alta dos frameworks em L-series é esperada: cada turn é um request
 
 ## Roadmap v0.3
 
-- [ ] F7: adicionar tool de browsing explícita ou marcar como incompatível com Chat API
-- [ ] Rodar e4b + 26b na F-series via Ollama direto (baseline sem overhead de framework)
+- [x] F7: reformulado para curl localhost:11434 — ambos frameworks agora 4.0
+- [x] Rodar e4b F-series via Ollama direto (baseline concluído)
 - [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge ativos
 - [ ] Adicionar `gemma4:12b` como ponto médio
 - [ ] Rodar C/T/M series com Aurelia/Hermes para comparação completa

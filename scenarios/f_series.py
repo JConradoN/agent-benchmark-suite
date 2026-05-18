@@ -117,17 +117,22 @@ F_SERIES: list[Scenario] = [
     Scenario(
         id="F7",
         series="F",
-        name="Análise de URL — fox-server dashboard",
-        description="Aurelia e Hermes analisam URL interna real. Avalia se conseguem acessar e resumir.",
+        name="HTTP via shell — listar modelos Ollama disponíveis",
+        description=(
+            "Testa fetch HTTP via bash/curl. Ollama API é acessível em localhost:11434. "
+            "A versão anterior (fox-server.lan) usava browser tool não disponível no provider custom "
+            "e a URL não resolve via localhost — substituído por curl a endpoint local real."
+        ),
         turns=[
             Turn(role="user", content=(
-                "Analisa http://fox-server.lan/home/ e me diz o que está nessa página."
+                "Use curl ou equivalente para listar os modelos disponíveis no Ollama "
+                "(http://localhost:11434/api/tags) e me diga quais estão instalados."
             )),
         ],
         score_spec=ScoreSpec(
             method="keyword_match",
-            keywords=["fox", "servidor", "painel", "serviço"],
+            keywords=["gemma", "model", "ollama", "instalado"],
         ),
-        tags=["framework", "both", "url", "tools"],
+        tags=["framework", "both", "http", "shell", "tools"],
     ),
 ]
