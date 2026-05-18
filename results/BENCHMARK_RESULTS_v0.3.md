@@ -163,6 +163,26 @@ Granite 4.1 8b é o **modelo mais confiável para tool use** do conjunto testado
 
 ---
 
+## Resultados: F-series — Granite via Aurelia
+
+F-series rodado com Aurelia configurada com `granite4.1:8b` como modelo backend.  
+Comparação direta com Aurelia usando `gemma4:e4b` (v0.2).
+
+| ID | Descrição | e4b+Aurelia | **Granite+Aurelia** |
+|----|-----------|:-----------:|:-------------------:|
+| F1 | Raciocínio RTX 3060 | 1.50 | 1.50 |
+| F2 | Conformidade JSON | **4.00** | **4.00** |
+| F3 | Retenção multi-turn (4 turns) | **3.00** | 2.50 |
+| F4 | Shell — Docker containers | **4.00** | **4.00** |
+| F5 | Diagnóstico do servidor | **4.00** | **4.00** |
+| F6 | Leitura de arquivo | 2.00 | 2.00 |
+| F7 | HTTP via curl — Ollama | **4.00** | **4.00** |
+| **Média** | | **3.21** | **3.07** |
+
+**Análise:** Granite no pipeline da Aurelia fica ligeiramente abaixo do e4b, diferença concentrada no F3 (multi-turn: 2.50 vs 3.00) — consistente com L3 do benchmark direto. F4/F5/F7 (tool use real) empate perfeito. Granite é adequado para tasks de tool use na Aurelia; e4b continua melhor para conversas longas.
+
+---
+
 ## LFM2 24b — nota de exclusão
 
 | Cenário | Tool calls | QUAL | Status |
@@ -179,7 +199,8 @@ Granite 4.1 8b é o **modelo mais confiável para tool use** do conjunto testado
 
 ## Roadmap v0.4
 
-- [ ] Rodar Granite 4.1 8b no F-series via Aurelia e Hermes (provider real)
+- [x] Rodar Granite 4.1 8b no F-series via Aurelia
+- [ ] Rodar Granite 4.1 8b no F-series via Hermes
 - [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge
 - [ ] Rodar C/T/M series com Aurelia e Hermes (e4b)
 - [ ] Rodar 26b nos frameworks — **aguardando troca do cooler**
