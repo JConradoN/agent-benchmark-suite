@@ -55,5 +55,6 @@ class Scenario:
     score_spec: ScoreSpec
     tools: list[ToolDef] = field(default_factory=list)
     # For chain/multi-turn: inject mock tool responses after the model calls a tool
-    mock_tool_responses: dict[str, str] = field(default_factory=dict)
+    # str = single response; list[str] = rotates on successive calls to same tool
+    mock_tool_responses: dict[str, str | list[str]] = field(default_factory=dict)
     tags: list[str] = field(default_factory=list)

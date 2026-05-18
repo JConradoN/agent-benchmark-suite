@@ -31,6 +31,7 @@ class BenchmarkRunner:
         tools_api = [t.to_api() for t in scenario.tools] if scenario.tools else None
 
         tool_calls_log: list[dict] = []
+        mock_call_counts: dict[str, int] = {}
         loop_exhausted = False
         total_latency_ms = 0
         total_tok = 0
@@ -54,7 +55,13 @@ class BenchmarkRunner:
                 # Inject mock responses for each tool call
                 for tc in resp["tool_calls"]:
                     fn_name = tc.get("function", {}).get("name", "")
-                    mock_resp = scenario.mock_tool_responses.get(fn_name, f'{{"result": "ok"}}')
+                    raw = scenario.mock_tool_responses.get(fn_name, '{"result": "ok"}')
+                    if isinstance(raw, list):
+                        idx = mock_call_counts.get(fn_name, 0)
+                        mock_resp = raw[idx % len(raw)]
+                        mock_call_counts[fn_name] = idx + 1
+                    else:
+                        mock_resp = raw
                     messages.append({
                         "role": "tool",
                         "content": mock_resp,

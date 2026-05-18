@@ -64,7 +64,7 @@ L_SERIES: list[Scenario] = [
         ],
         score_spec=ScoreSpec(
             method="keyword_match",
-            keywords=["e4b", "gemma4", "12gb", "eficiente"],
+            keywords=["9b", "7b", "moe", "eficiente", "q4", "gemma", "rtx", "12gb"],
         ),
         tags=["long-context", "quality-degradation", "technical"],
     ),

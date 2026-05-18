@@ -17,7 +17,7 @@ Q_SERIES: list[Scenario] = [
         ],
         score_spec=ScoreSpec(
             method="keyword_match",
-            keywords=["vram", "9.6", "12gb", "não", "cabe", "single"],
+            keywords=["suficiente", "não vale", "custo", "velocidade", "12gb", "qualidade"],
         ),
         tags=["reasoning", "hardware"],
     ),

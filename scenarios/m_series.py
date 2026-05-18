@@ -65,7 +65,10 @@ M_SERIES: list[Scenario] = [
         name="Diagnóstico de sistema — Aurelia profile",
         description="Diagnóstico completo do servidor: Aurelia usa health_check.",
         turns=[
-            Turn(role="user", content="O servidor está apresentando lentidão. Faz um diagnóstico completo e recomenda ação."),
+            Turn(role="user", content=(
+                "O servidor está apresentando lentidão. Use as ferramentas disponíveis para "
+                "verificar o estado atual e recomenda ação."
+            )),
         ],
         tools=AURELIA_TOOLS,
         score_spec=ScoreSpec(
@@ -87,7 +90,10 @@ M_SERIES: list[Scenario] = [
         name="Diagnóstico de sistema — Hermes profile",
         description="Mesmo diagnóstico do M2-A, Hermes usa shell_exec.",
         turns=[
-            Turn(role="user", content="O servidor está apresentando lentidão. Faz um diagnóstico completo e recomenda ação."),
+            Turn(role="user", content=(
+                "O servidor está apresentando lentidão. Use as ferramentas disponíveis para "
+                "verificar o estado atual e recomenda ação."
+            )),
         ],
         tools=HERMES_TOOLS,
         score_spec=ScoreSpec(
