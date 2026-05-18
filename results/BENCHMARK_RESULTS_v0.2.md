@@ -154,7 +154,7 @@ A latência alta dos frameworks em L-series é esperada: cada turn é um request
 - [x] F7: reformulado para curl localhost:11434 — ambos frameworks agora 4.0
 - [x] Rodar e4b F-series via Ollama direto (baseline concluído)
 - [ ] Investigar Q3/L3 Aurelia — testar com/sem persona e nudge ativos
-- [ ] Adicionar `gemma4:12b` como ponto médio
+- [x] `gemma4:12b` não existe — família gemma4 só tem e4b e 26b
 - [ ] Rodar C/T/M series com Aurelia/Hermes para comparação completa
 - [ ] Rodar 26b nos frameworks após troca do cooler do processador
 
