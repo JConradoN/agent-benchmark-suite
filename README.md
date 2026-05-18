@@ -161,7 +161,9 @@ Mesmo cenário executado com perfil Aurelia (tools: health, URL, YouTube) e perf
 
 ---
 
-## Saída
+## Saída e resultados
+
+### Arquivos de run
 
 Resultados gravados em `results/run_<ID>_<model>.jsonl`, uma linha JSON por run:
 
@@ -183,6 +185,14 @@ Resultados gravados em `results/run_<ID>_<model>.jsonl`, uma linha JSON por run:
   "scores": {"TOOL": 4, "LAT": 4}
 }
 ```
+
+### Relatórios de benchmark
+
+Relatórios de análise são salvos em `results/BENCHMARK_RESULTS_<versão>.md`.
+
+| Arquivo | Modelos | Data |
+|---------|---------|------|
+| [BENCHMARK_RESULTS_v0.1.md](results/BENCHMARK_RESULTS_v0.1.md) | `gemma4:e4b-it-q4_K_M` vs `gemma4:26b-a4b-it-q4_K_M` | 2026-05-18 |
 
 ---
 
@@ -217,6 +227,9 @@ agent-benchmark-suite/
 │   └── m_series.py        # M1-A, M1-H, M2-A, M2-H
 ├── run.py                 # CLI principal
 ├── compare.py             # Comparação entre modelos
+├── results/
+│   ├── run_<ID>_<model>.jsonl          # Dados brutos por cenário/modelo
+│   └── BENCHMARK_RESULTS_<versão>.md  # Relatórios de análise
 └── tests/
     └── test_scorer.py
 ```

@@ -1,4 +1,4 @@
-results/
+results/*.jsonl
 reports/
 __pycache__/
 *.pyc
