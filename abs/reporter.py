@@ -57,16 +57,16 @@ def _rich_table(by_scenario: dict[str, list[dict]]):
 
     for sid in sorted(by_scenario):
         runs = by_scenario[sid]
-        model = runs[0]["model"]
+        model = runs[0].get("model") or runs[0].get("provider", "?")
         series = runs[0]["series"]
         n = len(runs)
 
         qual = _avg([r["scores"].get("QUAL", -1) for r in runs])
         tool = _avg([r["scores"].get("TOOL", -1) for r in runs])
         lat_score = _avg([r["scores"].get("LAT", -1) for r in runs])
-        tps = _avg([r["tok_per_s"] for r in runs])
+        tps = _avg([r["tok_per_s"] for r in runs if r.get("tok_per_s") is not None])
         ms = _avg([r["latency_ms"] for r in runs])
-        loops = sum(1 for r in runs if r["loop_exhausted"])
+        loops = sum(1 for r in runs if r.get("loop_exhausted"))
 
         table.add_row(
             sid, series, model, str(n),
@@ -87,9 +87,9 @@ def _plain_table(by_scenario: dict[str, list[dict]]):
         qual = _avg([r["scores"].get("QUAL", -1) for r in runs])
         tool = _avg([r["scores"].get("TOOL", -1) for r in runs])
         lat = _avg([r["scores"].get("LAT", -1) for r in runs])
-        tps = _avg([r["tok_per_s"] for r in runs])
+        tps = _avg([r["tok_per_s"] for r in runs if r.get("tok_per_s") is not None])
         ms = _avg([r["latency_ms"] for r in runs])
-        loops = sum(1 for r in runs if r["loop_exhausted"])
+        loops = sum(1 for r in runs if r.get("loop_exhausted"))
         print(
             f"{sid:<6} {runs[0]['series']:<2} {n:>4} "
             f"{_fmt(qual):>5} {_fmt(tool):>5} {_fmt(lat):>5} "

@@ -42,6 +42,7 @@ class FrameworkRunner:
         scores = score_response(scenario, {
             "content": result["final_output"],
             "tool_calls": result["tool_calls"],
+            "latency_ms": result["latency_ms"],
         })
         return {
             "scenario_id": scenario.id,

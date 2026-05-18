@@ -26,11 +26,26 @@ class AureliaProvider:
 
         for turn in user_turns:
             t0 = time.perf_counter()
-            resp = self._client.post(
-                "/api/chat",
-                json={"text": turn.content, "session_key": session_key},
-            )
-            resp.raise_for_status()
+            try:
+                resp = self._client.post(
+                    "/api/chat",
+                    json={"text": turn.content, "session_key": session_key},
+                )
+                resp.raise_for_status()
+            except (httpx.HTTPStatusError, httpx.TimeoutException) as exc:
+                total_latency_ms += int((time.perf_counter() - t0) * 1000)
+                status = getattr(getattr(exc, "response", None), "status_code", 0)
+                return {
+                    "final_output": f"[TIMEOUT/ERROR: {exc}]",
+                    "tool_calls": [],
+                    "tool_calls_count": 0,
+                    "latency_ms": total_latency_ms,
+                    "tok_per_s": None,
+                    "eval_count": 0,
+                    "session_id": session_key,
+                    "loop_exhausted": status == 504,
+                    "iterations": len(user_turns),
+                }
             total_latency_ms += int((time.perf_counter() - t0) * 1000)
 
             data = resp.json()
