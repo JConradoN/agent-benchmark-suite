@@ -104,7 +104,12 @@ M_SERIES: list[Scenario] = [
             "shell_exec": (
                 '{"stdout": "CPU: 85%\\nRAM: 120/128GB\\nGPU0 VRAM: 11.8/12GB\\nTop: ollama (34GB RAM)\\n", '
                 '"returncode": 0}'
-            )
+            ),
+            "health_check": (
+                '{"cpu_pct": 85, "ram_used_gb": 120, "ram_total_gb": 128, '
+                '"gpu0_vram_used_gb": 11.8, "gpu0_vram_total_gb": 12, '
+                '"top_processes": [{"name": "ollama", "ram_gb": 34}]}'
+            ),
         },
         tags=["multi-agent", "hermes", "diagnostics"],
     ),

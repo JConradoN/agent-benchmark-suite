@@ -10,9 +10,9 @@ from abs.scorer import score_response
 
 
 class BenchmarkRunner:
-    def __init__(self, cfg: RunConfig):
+    def __init__(self, cfg: RunConfig, provider_instance=None):
         self.cfg = cfg
-        self.provider = OllamaProvider(cfg.provider)
+        self.provider = provider_instance or OllamaProvider(cfg.provider)
         self.output_dir = Path(cfg.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -62,11 +62,14 @@ class BenchmarkRunner:
                         mock_call_counts[fn_name] = idx + 1
                     else:
                         mock_resp = raw
-                    messages.append({
+                    tool_msg: dict = {
                         "role": "tool",
                         "content": mock_resp,
                         "name": fn_name,
-                    })
+                    }
+                    if tc_id := tc.get("id"):
+                        tool_msg["tool_call_id"] = tc_id
+                    messages.append(tool_msg)
             else:
                 # No more tool calls — final response
                 break

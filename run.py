@@ -32,7 +32,7 @@ _FRAMEWORK_SERIES = {"F", "Q", "L"}
 
 def parse_args():
     p = argparse.ArgumentParser(description="Agent Benchmark Suite")
-    p.add_argument("--provider", default="ollama", choices=["ollama", "hermes", "aurelia"],
+    p.add_argument("--provider", default="ollama", choices=["ollama", "hermes", "aurelia", "llama-server"],
                    help="Provider to use (default: ollama)")
     p.add_argument("--model", default="gemma4:e4b-it-q4_K_M",
                    help="Model tag (Ollama) or Hermes -m flag")
@@ -43,7 +43,13 @@ def parse_args():
     p.add_argument("--series", nargs="+", choices=["Q", "T", "C", "L", "M", "F"])
     p.add_argument("--scenario", nargs="+", help="Specific scenario IDs (e.g. Q1 F3)")
     p.add_argument("--runs", type=int, default=3)
+    p.add_argument("--timeout", type=int, default=120,
+                   help="HTTP timeout in seconds per request (default: 120)")
     p.add_argument("--think", action="store_true")
+    p.add_argument("--no-think", action="store_true",
+                   help="Disable thinking for llama-server (prepends /no_think to user messages)")
+    p.add_argument("--max-tokens", type=int, default=2048,
+                   help="Max tokens for llama-server responses (default: 2048)")
     p.add_argument("--output-dir", default="results")
     p.add_argument("--report", action="store_true")
     p.add_argument("--verbose", action="store_true")
@@ -53,11 +59,10 @@ def parse_args():
 def _build_framework_runner(args) -> FrameworkRunner:
     if args.provider == "hermes":
         from abs.providers.hermes_provider import HermesProvider
-        model = None if args.model == "gemma4:e4b-it-q4_K_M" else args.model
-        provider = HermesProvider(model=model)
+        provider = HermesProvider(model=args.model, timeout=args.timeout)
     elif args.provider == "aurelia":
         from abs.providers.aurelia_provider import AureliaProvider
-        provider = AureliaProvider(base_url=args.aurelia_url)
+        provider = AureliaProvider(base_url=args.aurelia_url, timeout=args.timeout)
     else:
         raise ValueError(f"Unknown framework provider: {args.provider}")
 
@@ -99,11 +104,26 @@ def main():
 
     scenarios = _select_scenarios(args)
 
-    if args.provider == "ollama":
+    if args.provider == "llama-server":
+        from abs.providers.llama_server import LlamaServerProvider
         cfg = RunConfig(
             provider=ProviderConfig(
                 base_url=args.base_url,
                 model=args.model,
+                timeout=args.timeout,
+            ),
+            runs_per_scenario=args.runs,
+            output_dir=args.output_dir,
+            verbose=args.verbose,
+        )
+        runner = BenchmarkRunner(cfg, provider_instance=LlamaServerProvider(cfg.provider, no_think=args.no_think, max_tokens=args.max_tokens))
+        label = args.model
+    elif args.provider == "ollama":
+        cfg = RunConfig(
+            provider=ProviderConfig(
+                base_url=args.base_url,
+                model=args.model,
+                timeout=args.timeout,
                 think=args.think,
             ),
             runs_per_scenario=args.runs,
