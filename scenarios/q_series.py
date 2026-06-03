@@ -40,6 +40,28 @@ Q_SERIES: list[Scenario] = [
         tags=["format", "json"],
     ),
     Scenario(
+        id="Q2v2",
+        series="Q",
+        name="Conformidade de formato JSON — dados fornecidos",
+        description=(
+            "Avalia se o modelo retorna JSON válido e completo quando os dados são fornecidos no prompt. "
+            "Versão neutra do Q2: elimina dependência de knowledge cutoff sobre modelos específicos."
+        ),
+        turns=[
+            Turn(role="user", content=(
+                "Os dados abaixo descrevem um modelo de linguagem. "
+                "Retorne APENAS um JSON (sem markdown, sem explicação) com exatamente estas chaves:\n"
+                '{"model_name": ..., "params_billions": ..., "vram_gb": ..., "use_case": ...}\n\n'
+                "Dados: nome=atlas-7b, parâmetros=7 bilhões, VRAM necessária=5.2GB, uso=chat e código."
+            )),
+        ],
+        score_spec=ScoreSpec(
+            method="json_schema",
+            required_keys=["model_name", "params_billions", "vram_gb", "use_case"],
+        ),
+        tags=["format", "json"],
+    ),
+    Scenario(
         id="Q3",
         series="Q",
         name="Retenção de contexto em conversa técnica",
