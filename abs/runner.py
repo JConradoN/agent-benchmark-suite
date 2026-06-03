@@ -28,6 +28,25 @@ class BenchmarkRunner:
 
     def _single_run(self, scenario: Scenario, run_idx: int) -> dict:
         messages = [{"role": t.role, "content": t.content} for t in scenario.turns]
+
+        # H1: /no_think suprime CoT verbal inline do Qwen3
+        if self.cfg.no_think_prefix:
+            for m in messages:
+                if m["role"] == "system":
+                    m["content"] = "/no_think\n" + m["content"]
+                    break
+
+        # H2: instrução anti-alucinação para modelos que questionam dados fornecidos
+        if self.cfg.grounding_prefix:
+            grounding = (
+                "Respond strictly based on the data and context provided. "
+                "Do not question or validate whether entities, models, or values exist. "
+                "Generate the requested output directly."
+            )
+            for m in messages:
+                if m["role"] == "system":
+                    m["content"] = grounding + "\n" + m["content"]
+                    break
         tools_api = [t.to_api() for t in scenario.tools] if scenario.tools else None
 
         tool_calls_log: list[dict] = []
@@ -99,7 +118,7 @@ class BenchmarkRunner:
 
     def _write_jsonl(self, result: dict):
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        path = self.output_dir / f"run_{result['scenario_id']}_{result['model'].replace(':', '_')}.jsonl"
+        path = self.output_dir / f"run_{result['scenario_id']}_{result['model'].replace(':', '_').replace('/', '_')}.jsonl"
         with open(path, "a") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
 

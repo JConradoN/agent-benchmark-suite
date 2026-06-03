@@ -39,6 +39,7 @@ class HermesProvider:
                 "--max-turns", str(self.max_turns),
                 "--source", "benchmark",
                 "--ignore-rules",
+                "--yolo",
             ]
             if self.model:
                 cmd += ["-m", self.model]

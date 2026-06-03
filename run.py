@@ -48,6 +48,10 @@ def parse_args():
     p.add_argument("--think", action="store_true")
     p.add_argument("--no-think", action="store_true",
                    help="Disable thinking for llama-server (prepends /no_think to user messages)")
+    p.add_argument("--no-think-prefix", action="store_true",
+                   help="H1: injeta /no_think no system prompt (suprime CoT verbal do Qwen3)")
+    p.add_argument("--grounding-prefix", action="store_true",
+                   help="H2: injeta instrução anti-alucinação no system prompt")
     p.add_argument("--max-tokens", type=int, default=2048,
                    help="Max tokens for llama-server responses (default: 2048)")
     p.add_argument("--output-dir", default="results")
@@ -129,6 +133,8 @@ def main():
             runs_per_scenario=args.runs,
             output_dir=args.output_dir,
             verbose=args.verbose,
+            no_think_prefix=args.no_think_prefix,
+            grounding_prefix=args.grounding_prefix,
         )
         runner = BenchmarkRunner(cfg)
         label = cfg.provider.model

@@ -17,3 +17,5 @@ class RunConfig:
     output_dir: str = "results"
     series: list[str] = field(default_factory=lambda: ["Q", "T", "C", "L", "M"])
     verbose: bool = False
+    no_think_prefix: bool = False   # H1: injeta /no_think no system prompt
+    grounding_prefix: bool = False  # H2: injeta instrução anti-alucinação no system prompt
