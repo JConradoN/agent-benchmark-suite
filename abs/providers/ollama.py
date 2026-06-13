@@ -13,7 +13,7 @@ class OllamaProvider:
             "model": self.cfg.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": self.cfg.temperature, "num_ctx": 4096},
+            "options": {"temperature": self.cfg.temperature, "num_ctx": self.cfg.num_ctx},
         }
         if tools:
             payload["tools"] = tools

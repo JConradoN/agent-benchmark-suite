@@ -8,6 +8,7 @@ class ProviderConfig:
     timeout: int = 120
     think: bool = False
     temperature: float = 0.0
+    num_ctx: int = 4096
 
 
 @dataclass

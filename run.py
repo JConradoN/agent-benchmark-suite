@@ -54,6 +54,8 @@ def parse_args():
                    help="H2: injeta instrução anti-alucinação no system prompt")
     p.add_argument("--max-tokens", type=int, default=2048,
                    help="Max tokens for llama-server responses (default: 2048)")
+    p.add_argument("--num-ctx", type=int, default=4096,
+                   help="Context window size in tokens for Ollama (default: 4096)")
     p.add_argument("--output-dir", default="results")
     p.add_argument("--report", action="store_true")
     p.add_argument("--verbose", action="store_true")
@@ -129,6 +131,7 @@ def main():
                 model=args.model,
                 timeout=args.timeout,
                 think=args.think,
+                num_ctx=args.num_ctx,
             ),
             runs_per_scenario=args.runs,
             output_dir=args.output_dir,
