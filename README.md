@@ -18,15 +18,21 @@ ABS is the entry filter. Models that pass ABS advance to LOP (local-only pressur
 
 ---
 
-## The Benchmark Hierarchy
+## The Certification Funnel
 
-| Stage | Focus | What it tests |
-|-------|-------|---------------|
-| **ABS** ← *this repo* | Capability baseline | Tool use, reasoning, structured output, context retention |
-| **LOP** | Local-only pressure | Realistic operational tasks, no external APIs |
-| **FORGE** | Real-world chained tasks | Multi-step agentic loops with measurable deliverables |
-| **REAL** | Production simulation | Browser automation, real test suites, SPA interaction |
-| *(applied)* | **agent-FORGE** | Production framework built from all 4 stages of benchmark learnings |
+ABS is not a ranking benchmark. It is the **first gate** of a progressive certification funnel.
+
+19 models entered. Each stage is an elimination filter — not a comparison, but a capability gate. Models that can't meet the bar don't advance.
+
+| Stage | Gate question | What it proves | Filter |
+|-------|--------------|----------------|--------|
+| **ABS** ← *you are here* | Can it call tools at all? | Tool mechanics, parameter accuracy, structured output | 19 entered |
+| **LOP** | Does it hold under real pressure? | Consistency under operational load, no external APIs | — |
+| **FORGE** | Can it function as an agent? | Multi-turn chaining, autonomous planning, deliverable output | 7 entered |
+| **REAL** | Does it work in production? | Real browser, tests that pass, enterprise-grade tasks | 4 proven |
+| **agent-FORGE** | *Deploy* | Production runtime for models that survived the full funnel | — |
+
+The model that survives all 4 stages is not just "good at benchmarks" — it is **proven capable of the actual job**. agent-FORGE is where those models go to work.
 
 ---
 
